@@ -13,7 +13,7 @@ This is a test App on Kotlin for interacting with currency rates service "curren
 
 ToDo
 ----
-Приложение использует данные из [http://www.currencylayer.com]
+Приложение использует данные из http://www.currencylayer.com
 
 Необходимо создать конвертор валют из двух экранов:
 1) Экран конвертации валюты
@@ -39,8 +39,8 @@ Introduction
 Currencylayer API:
 !!! ВНИМАНИЕ !!! Существующее ограничение на кол-во запросов к серверу (на тарифном плане FREE) = 
 250 запросов/мес. 
-Ответ на запрос к Currencylayer API:
-http://apilayer.net/api/live?access_key=...&currencies=EUR,GBP,CAD,RUB&source=USD&format=1
+Ответ на запрос к [Currencylayer API](http://apilayer.net/api/live?access_key=...&currencies=EUR,GBP,CAD,RUB&source=USD&format=1):
+```json
 {
   "success":true,
   "terms":"https://currencylayer.com/terms",
@@ -54,14 +54,14 @@ http://apilayer.net/api/live?access_key=...&currencies=EUR,GBP,CAD,RUB&source=US
     "USDRUB":74.649404
   }
 }
-
+```
 
 2020-02-18
 Fixer API:
 !!! ВНИМАНИЕ !!! Существующее ограничение на кол-во запросов к серверу (на тарифном плане FREE) = 
 1000 запросов/мес. 
-Ответ на запрос к Fixer API: (https://fixer.io/documentation)
-https://data.fixer.io/api/latest? access_key = API_KEY
+Ответ на запрос к [Fixer API](https://data.fixer.io/api/latest?access_key=API_KEY):
+```json
 {
     "success": true,
     "timestamp": 1519296206,
@@ -74,15 +74,15 @@ https://data.fixer.io/api/latest? access_key = API_KEY
         "CNY": 7.827874,
         "GBP": 0.882047,
         "JPY": 132.360679,
-        "USD": 1.23396,
-        ...
+        "USD": 1.23396
     }
 } 
-
+```
 
 2020-03-06
 Currencylayer API:
-ПОЛНЫЙ список валют - ответ на запрос: http://apilayer.net/api/live?access_key=...&format=1
+ПОЛНЫЙ список валют - ответ на [запрос](http://apilayer.net/api/live?access_key=...&format=1): 
+```json
 {
   "success":true,
   "terms":"https:\/\/currencylayer.com\/terms",
@@ -260,3 +260,4 @@ Currencylayer API:
     "USDZWL":322.000331
   }
 }
+```
