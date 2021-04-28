@@ -2,7 +2,7 @@ package com.olshevchenko.currencyconverter.core
 
 
 data class Result<T> private constructor(
-    var resultType: ResultType,
+    val resultType: ResultType,
     val data: T? = null,
     val error: Exception? = null,
     val errorDesc: String? = null

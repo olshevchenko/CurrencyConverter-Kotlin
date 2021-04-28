@@ -15,7 +15,9 @@ import com.olshevchenko.currencyconverter.features.rates.domain.model.CurrencyRa
 import com.olshevchenko.currencyconverter.features.rates.domain.model.FromToCodes
 import io.reactivex.Single
 import io.reactivex.observers.TestObserver
-import org.junit.*
+import org.junit.After
+import org.junit.Before
+import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito
@@ -71,13 +73,15 @@ class RatesRepositoryImplTest {
     )
 
     val currencyRatesUSDGBP = CurrencyRates(
-        listOf(currencyRateUSDGBP))
+        listOf(currencyRateUSDGBP)
+    )
 
     val currencyRatesUSDGBPUSDEUR = CurrencyRates(
         listOf(
             currencyRateUSDGBP,
             currencyRateUSDEUR,
-        ))
+        )
+    )
 
     val currencyEmptyCodes = CurrencyCodes(listOf())
     val currencyUSDEURCodes = CurrencyCodes(listOf("USD", "EUR"))
@@ -95,10 +99,12 @@ class RatesRepositoryImplTest {
 
         ratesUSDEUREntity = RatesDataEntity(mapOf(Pair("USDEUR", rateUSDEURQuote)))
         ratesUSDGBPEntity = RatesDataEntity(mapOf(Pair("USDGBP", rateUSDGBPQuote)))
-        ratesUSDGBPUSDEUREntity = RatesDataEntity(sortedMapOf(
-            Pair("USDGBP", rateUSDGBPQuote),
-            Pair("USDEUR", rateUSDEURQuote),
-        ))
+        ratesUSDGBPUSDEUREntity = RatesDataEntity(
+            sortedMapOf(
+                Pair("USDGBP", rateUSDGBPQuote),
+                Pair("USDEUR", rateUSDEURQuote),
+            )
+        )
 
 //        `when`(ratesLocalDataSourceImplMocked.saveRates(ratesUSDEUREntity))
 //            .thenReturn(true)
@@ -152,7 +158,7 @@ class RatesRepositoryImplTest {
 
 
     @Test
-//    fun verifyInitialStepsAndNetworking1() {
+//    fun verifyInitialStepsAndNetworkingFail() {
     fun `should execute initial steps correctly and process network fail correctly`() {
 
         ratesRepositoryImpl = RatesRepositoryImpl(
@@ -168,12 +174,14 @@ class RatesRepositoryImplTest {
         observer.assertNoErrors()
         observer.assertComplete()
         observer.assertValue(Result.errorWData(currencyRatesUSDGBP, errorDesc = "network err"))
-        Mockito.verify(ratesLocalDataSourceInitImplMocked, Mockito.times(1)).loadRates()
-        Mockito.verify(ratesCacheDataSourceInitImplMocked, Mockito.times(1)).saveRates(Mockito.any())
-        Mockito.verify(ratesCacheDataSourceInitImplMocked, Mockito.times(1)).getRates()
-        Mockito.verify(ratesNetworkDataSourceInitImplMocked, Mockito.times(1)).getRates()
-        verify(entityToCurrencyRatesMapperMocked,
-            Mockito.times(1)).map(ratesUSDGBPEntity)
+        verify(ratesLocalDataSourceInitImplMocked, times(1)).loadRates()
+        verify(ratesCacheDataSourceInitImplMocked, times(1)).saveRates(Mockito.any())
+        verify(ratesCacheDataSourceInitImplMocked, times(1)).getRates()
+        verify(ratesNetworkDataSourceInitImplMocked, times(1)).getRates()
+        verify(
+            entityToCurrencyRatesMapperMocked,
+            times(1)
+        ).map(ratesUSDGBPEntity)
     }
 
     @Test
@@ -212,8 +220,10 @@ class RatesRepositoryImplTest {
         observerGetting.assertNoErrors()
         observerGetting.assertComplete()
         observerGetting.assertValue(Result.success(currencyRatesUSDGBPUSDEUR))
-        verify(entityToCurrencyRatesMapperMocked,
-            Mockito.times(1)).map(ratesUSDGBPUSDEUREntity)
+        verify(
+            entityToCurrencyRatesMapperMocked,
+            times(1)
+        ).map(ratesUSDGBPUSDEUREntity)
 
         /**
          * save merged cache value
@@ -223,8 +233,10 @@ class RatesRepositoryImplTest {
         observerSaving.assertNoErrors()
         observerSaving.assertComplete()
         observerSaving.assertValue(Result.success(Unit))
-        verify(ratesLocalDataSourceInitImplMocked,
-            Mockito.times(1)).saveRates(ratesUSDGBPUSDEUREntity)
+        verify(
+            ratesLocalDataSourceInitImplMocked,
+            times(1)
+        ).saveRates(ratesUSDGBPUSDEUREntity)
     }
 
     @Test
@@ -236,10 +248,10 @@ class RatesRepositoryImplTest {
         observer.assertNoErrors()
         observer.assertComplete()
         observer.assertValue(Result.success(currencyUSDEURCodes))
-        Mockito.verifyNoInteractions(ratesNetworkDataSourceInitImplMocked)
-        Mockito.verify(ratesCacheDataSourceImplMocked, Mockito.times(1)).getCodes()
-        Mockito.verify(ratesCacheDataSourceImplMocked, Mockito.times(1)).saveRates(Mockito.any())
-        Mockito.verify(ratesLocalDataSourceImplMocked, Mockito.times(1)).loadRates()
+        verifyNoInteractions(ratesNetworkDataSourceInitImplMocked)
+        verify(ratesCacheDataSourceImplMocked, times(1)).getCodes()
+        verify(ratesCacheDataSourceImplMocked, times(1)).saveRates(Mockito.any())
+        verify(ratesLocalDataSourceImplMocked, times(1)).loadRates()
     }
 
     @Test

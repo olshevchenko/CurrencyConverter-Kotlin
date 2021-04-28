@@ -6,17 +6,29 @@ import io.reactivex.SingleObserver
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 
-abstract class RXUseCase<T, in Params>(private val subscribeScheduler: Scheduler,
-                                       private val postExecutionScheduler: Scheduler) {
+typealias FuncHandler = () -> Unit
+
+abstract class RXUseCase<T, in Params>(
+    private val subscribeScheduler: Scheduler,
+    private val observeScheduler: Scheduler
+) {
 
     private val disposables = CompositeDisposable()
 
     abstract fun buildUseCaseSingle(params: Params?): Single<T>
 
-    fun execute(observer: SingleObserver<T>, params: Params? = null) {
+    fun execute(
+        observer: SingleObserver<T>,
+        onSubscribeHandler: FuncHandler, // lambda from presentation/UI to start loading show
+        finallyHandler: FuncHandler, // lambda to finish loading show
+        params: Params? = null
+    ) {
         val observable: Single<T> = this.buildUseCaseSingle(params)
-                .subscribeOn(subscribeScheduler)
-                .observeOn(postExecutionScheduler)
+            .subscribeOn(subscribeScheduler)
+            .observeOn(observeScheduler)
+            .doOnSubscribe { onSubscribeHandler() }
+            .doFinally { finallyHandler() }
+
         (observable.subscribeWith(observer) as? Disposable)?.let {
             disposables.add(it)
         }

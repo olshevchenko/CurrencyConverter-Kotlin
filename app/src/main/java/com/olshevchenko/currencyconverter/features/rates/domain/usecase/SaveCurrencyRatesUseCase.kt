@@ -9,9 +9,9 @@ import io.reactivex.Single
 class SaveCurrencyRatesUseCase(
     private val ratesRepository: CurrencyRatesRepository,
     subscribeScheduler: Scheduler,
-    private val postExecutionScheduler: Scheduler
-) :
-    RXUseCase<Result<Unit>, Unit>(subscribeScheduler, postExecutionScheduler) {
+    observeScheduler: Scheduler
+) : RXUseCase<Result<Unit>, Unit>(subscribeScheduler, observeScheduler) {
+
     override fun buildUseCaseSingle(params: Unit?): Single<Result<Unit>> =
         ratesRepository.saveRates()
 }

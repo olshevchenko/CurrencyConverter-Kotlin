@@ -20,7 +20,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.BDDMockito.given
 import org.mockito.Mock
-import org.mockito.Mockito
+import org.mockito.Mockito.*
 import org.mockito.junit.MockitoJUnitRunner
 import org.powermock.core.classloader.annotations.PrepareForTest
 import retrofit2.Retrofit
@@ -102,13 +102,13 @@ class RatesNetworkDataSourceImplTest {
             .add(KotlinJsonAdapterFactory())
             .build()
 
-        Mockito.`when`(ratesApiServiceMocked.getRates())
+        `when`(ratesApiServiceMocked.getRates())
             .thenReturn(Single.just(ratesUSDEURApi))
 
-        Mockito.`when`(ratesApiServiceErrMocked.getRates())
+        `when`(ratesApiServiceErrMocked.getRates())
             .thenReturn(Single.just(ratesErrApi))
 
-        Mockito.`when`(apiToEntityMapperMocked.map(ratesUSDEURApi))
+        `when`(apiToEntityMapperMocked.map(ratesUSDEURApi))
             .thenReturn(ratesUSDEUREntity)
 
 
@@ -122,7 +122,7 @@ class RatesNetworkDataSourceImplTest {
      * extension fun for error Result equality check
      * intentionally ignore error.stackTrace check (always not equal!)
      */
-    fun Result<RatesDataEntity>.errEquals(other: Any?): Boolean {
+    private fun Result<RatesDataEntity>.errEquals(other: Any?): Boolean {
         if (other === this) return true
         if (other !is Result<*>) return false
         if ((other.resultType != Result.ResultType.ERROR) ||
@@ -148,7 +148,7 @@ class RatesNetworkDataSourceImplTest {
     }
 
     @Test
-//    fun verifyGetSuccessfullRates() {
+//    fun verifyGetSuccessfulRates() {
     fun `should correctly get Rates from mocked network`() {
 
         ratesNetworkDataSourceImpl = RatesNetworkDataSourceImpl(
@@ -158,8 +158,8 @@ class RatesNetworkDataSourceImplTest {
         observer.assertNoErrors()
         observer.assertComplete()
         observer.assertValue(Result.success(ratesUSDEUREntity))
-        Mockito.verify(ratesApiServiceMocked).getRates()
-        Mockito.verify(apiToEntityMapperMocked).map(ratesUSDEURApi)
+        verify(ratesApiServiceMocked).getRates()
+        verify(apiToEntityMapperMocked).map(ratesUSDEURApi)
     }
 
     @Test
@@ -173,17 +173,17 @@ class RatesNetworkDataSourceImplTest {
         ratesNetworkDataSourceImpl.getRates().subscribe(observer)
         observer.assertNoErrors()
         observer.assertComplete()
-        var actualResult: Result<RatesDataEntity> = observer.values()[0]
+        val actualResult: Result<RatesDataEntity> = observer.values()[0]
         assertTrue(actualResult.errEquals(expectedErrResult))
-        Mockito.verify(ratesApiServiceErrMocked).getRates()
-        Mockito.verifyNoInteractions(apiToEntityMapperMocked)
+        verify(ratesApiServiceErrMocked).getRates()
+        verifyNoInteractions(apiToEntityMapperMocked)
     }
 
     @Test
 //    fun verifyGetExceptionRates() {
     fun `should correctly proceed network exception and return error`() {
 
-//        Mockito.`when`(ratesApiServiceExceptionMocked.getRates())
+//       `when`(ratesApiServiceExceptionMocked.getRates())
 //            .thenThrow(
 //                UnknownHostException("http://mockedapilayer.net/api")
 //            )
@@ -198,10 +198,10 @@ class RatesNetworkDataSourceImplTest {
         ratesNetworkDataSourceImpl.getRates().subscribe(observer)
         observer.assertNoErrors()
         observer.assertComplete()
-        var actualResult: Result<RatesDataEntity> = observer.values()[0]
+        val actualResult: Result<RatesDataEntity> = observer.values()[0]
         assertTrue(actualResult.errEquals(expectedExceptionResult))
-        Mockito.verify(ratesApiServiceExceptionMocked).getRates()
-        Mockito.verifyNoInteractions(apiToEntityMapperMocked)
+        verify(ratesApiServiceExceptionMocked).getRates()
+        verifyNoInteractions(apiToEntityMapperMocked)
     }
 
 
@@ -229,12 +229,12 @@ class RatesNetworkDataSourceImplTest {
         ratesNetworkDataSourceImpl.getRates().subscribe(observer)
         observer.assertNoErrors()
 //        observer.assertComplete()
-        var actualResult: Result<RatesDataEntity> = observer.values()[0]
+        val actualResult: Result<RatesDataEntity> = observer.values()[0]
         assertTrue(actualResult.errEquals(expectedErrResult))
     }
 
     @Test
-//    fun verifyMockedInterceptorGetSuccessfullRates() {
+//    fun verifyMockedInterceptorGetSuccessfulRates() {
     fun `should correctly get Rates from API with mocked interceptor`() {
 
         val ratesMockShortApiService = Retrofit.Builder()

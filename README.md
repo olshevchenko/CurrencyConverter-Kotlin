@@ -1,4 +1,4 @@
-AndroidCurrencyConverter - an Android Native Application
+CurrencyConverter-Kotlin - an Android Native Application
 ========================================================
 
 This is a test App on Kotlin for interacting with currency rates service "currencylayer API" using the following features of Android development:
@@ -30,7 +30,6 @@ ToDo
  - По свайпу влево по элементу истории должна появляться кнопка delete,
 удаляющая элемент истории.
 Экран конвертации валюты и истории организовать в виде табов.
-Рекомендуются к использованию следующие библиотеки: ORMLite, Retrofit.
 
 Introduction
 ------------

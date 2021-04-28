@@ -20,8 +20,15 @@ import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.io.File
 
+
+/**
+ * File with datasource-layer Koin modules, common for all application features
+ */
+
+
 private const val API_BASE_URL = "http://apilayer.net/api/"
 private const val LOCAL_RATES_STORAGE = "SavedRates.txt"
+
 
 /**
  * Build the Moshi object for Retrofit, adding the Kotlin adapter

@@ -10,9 +10,9 @@ import io.reactivex.Single
 class GetCurrencyCodesUseCase(
     private val ratesRepository: CurrencyRatesRepository,
     subscribeScheduler: Scheduler,
-    private val postExecutionScheduler: Scheduler
-) :
-    RXUseCase<Result<CurrencyCodes>, Unit>(subscribeScheduler, postExecutionScheduler) {
+    observeScheduler: Scheduler
+) : RXUseCase<Result<CurrencyCodes>, Unit>(subscribeScheduler, observeScheduler) {
+
     override fun buildUseCaseSingle(params: Unit?): Single<Result<CurrencyCodes>> =
         ratesRepository.getCodes()
 }

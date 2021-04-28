@@ -192,8 +192,34 @@ EntityToCurrencyRatesMapper.
 
 ##2020-04-19
 #### Processed
-- [app/src/test/java/.../datasource/net/RatesNetworkDataSourceImplTest.kt] - дополнение Unit-тестов 
+- [app/src/test/java/.../datasource/net/RatesNetworkDataSourceImplTest.kt] - дополнение Unit-тестов. 
 - #### Changed
 - [datasource/cache/RatesCacheDataSourceImpl.kt] - упрощено хранение кэша курсов валют (теперь просто
-mutableMapOf<String, RatesDataEntity.Quote>() вместо RatesLocal)
+mutableMapOf<String, RatesDataEntity.Quote>() вместо RatesLocal).
+- #### Milestone
+- Github - публикация проекта.
 
+##2020-04-[23-25]
+#### Added
+- features/rates/presentation - создание слоя Presenter для курсов валют:
+[features/rates/presentation/RatesContract.kt] - контракт VP в MVP-модели
+[features/rates/presentation/RatesListPresenter.kt] - презентер списка курсов валют 
+- #### Changed
+- [core/usecase/RXUseCase.kt] - добавление функторов для обратной связи с UI при выполнении UseCase-ов
+ 
+##2020-04-[25-26]
+#### Added
+- [features/rates/presentation/RatesContract.kt] - добавление view списка курсов валют
+- [app/src/test/java/.../features/rates/domain/usecase/GetCurrencyRatesUseCaseTest.kt], 
+[app/src/test/java/.../features/rates/presentation/RatesListPresenterTest.kt] - написание
+Unit-тестов для GetCurrencyRatesUseCase, RatesListPresenter.
+- #### Fixed
+- добавлен файл [app/src/test/resources/.../datasource/local/SavedRatesDir/.gitkeep] для занесения 
+в Git тестового каталога 'SavedRatesDir' 
+ 
+##2020-04-[27-28]
+#### Added
+- [features/rates/presentation/RatesListPresenter.kt] - добавление (временной?) заглушки для view. 
+#### Processed
+- [app/src/test/java/.../features/rates/presentation/RatesListPresenterTest.kt] - завершение 
+Unit-тестов для RatesListPresenter. 

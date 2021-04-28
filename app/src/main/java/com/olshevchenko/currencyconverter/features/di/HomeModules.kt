@@ -9,36 +9,41 @@ import io.reactivex.schedulers.Schedulers
 import org.koin.dsl.module
 
 
+/**
+ * File with business/interactors-layer Koin modules, common for all application features
+ */
+
+
 private val subscribeScheduler = Schedulers.io()
-private val postExecutionScheduler = AndroidSchedulers.mainThread()
+private val observeScheduler = AndroidSchedulers.mainThread()
 
 val homeModule = module {
     factory {
         GetCurrencyCodesUseCase(
             ratesRepository = get(),
             subscribeScheduler,
-            postExecutionScheduler
+            observeScheduler
         )
     }
     factory {
         GetCurrencyRateUseCase(
             ratesRepository = get(),
             subscribeScheduler,
-            postExecutionScheduler
+            observeScheduler
         )
     }
     factory {
         GetCurrencyRatesUseCase(
             ratesRepository = get(),
             subscribeScheduler,
-            postExecutionScheduler
+            observeScheduler
         )
     }
     factory {
         SaveCurrencyRatesUseCase(
             ratesRepository = get(),
             subscribeScheduler,
-            postExecutionScheduler
+            observeScheduler
         )
     }
 }

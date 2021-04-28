@@ -102,10 +102,10 @@ class GetCurrencyRateUseCaseTest {
         ratesRepositoryImpl = RatesRepositoryImpl(
             ratesNetworkDataSourceImplMocked,
             ratesCacheDataSourceImpl, // instance of REAL CacheDataSourceImpl that got necessary
-                                      // "USD-USD rates from mocked LocalDataSourceImpl object
+            // "USD-USD rates from mocked LocalDataSourceImpl object
             ratesLocalDataSourceImplMocked,
 //            ratesLocalDataSourceImpl
-        EntityToCurrencyRatesMapper
+            EntityToCurrencyRatesMapper
         )
 
         getCurrencyRateUseCase = GetCurrencyRateUseCase(
@@ -125,7 +125,7 @@ class GetCurrencyRateUseCaseTest {
     fun `should get 'NOT FOUND' result for nulled 'from-to' currency code`() {
         val observer = TestObserver<Result<CurrencyRate>>()
 
-        getCurrencyRateUseCase.execute(observer, fromToCodesNulled)
+        getCurrencyRateUseCase.execute(observer, {}, {}, fromToCodesNulled)
         observer.assertNoErrors()
         observer.assertComplete()
         observer.assertValue(rateNotFoundResult)
@@ -139,7 +139,7 @@ class GetCurrencyRateUseCaseTest {
     fun `should get 'NOT FOUND' result for incorrect 'from-to' currency code`() {
         val observer = TestObserver<Result<CurrencyRate>>()
 
-        getCurrencyRateUseCase.execute(observer, fromToCodesWrong)
+        getCurrencyRateUseCase.execute(observer, {}, {}, fromToCodesWrong)
         observer.assertNoErrors()
         observer.assertComplete()
         observer.assertValue(rateNotFoundResult)
@@ -153,7 +153,7 @@ class GetCurrencyRateUseCaseTest {
     fun `should get correct result for correct and suitable 'from-to' currency code`() {
         val observer = TestObserver<Result<CurrencyRate>>()
 
-        getCurrencyRateUseCase.execute(observer, fromToCodesUSDUSD)
+        getCurrencyRateUseCase.execute(observer, {}, {}, fromToCodesUSDUSD)
         observer.assertNoErrors()
         observer.assertComplete()
         observer.assertValue(rateUSDUSDResult)

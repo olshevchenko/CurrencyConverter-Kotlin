@@ -100,7 +100,7 @@ class GetCurrencyCodesUseCaseTest {
             Schedulers.trampoline()
         )
 
-        getCurrencyCodesUseCase.execute(observer)
+        getCurrencyCodesUseCase.execute(observer, {}, {})
         observer.assertNoErrors()
         observer.assertComplete()
         observer.assertValue(uSDEURRUBCodesResult)
@@ -128,7 +128,7 @@ class GetCurrencyCodesUseCaseTest {
             Schedulers.trampoline()
         )
 
-        getCurrencyCodesUseCase.execute(observer)
+        getCurrencyCodesUseCase.execute(observer, {}, {})
         observer.assertNoErrors()
         observer.assertComplete()
         observer.assertValue(emptyCodesResult)
