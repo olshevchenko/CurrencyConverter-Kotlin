@@ -13,6 +13,7 @@ import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import io.reactivex.Single
 import io.reactivex.observers.TestObserver
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -211,9 +212,15 @@ class RatesNetworkDataSourceImplTest {
 
         val ratesMockFailApiService = Retrofit.Builder()
             .client(
-                OkHttpClient.Builder().addInterceptor(
-                    MockInterceptor(MockInterceptor.RatesResponses.FAIL)
-                ).build()
+                OkHttpClient.Builder()
+                    .addInterceptor(
+                        MockInterceptor(MockInterceptor.RatesResponses.FAIL)
+                    )
+                    .addInterceptor(
+                        HttpLoggingInterceptor()
+                            .setLevel(HttpLoggingInterceptor.Level.BODY)
+                    )
+                    .build()
             )
             .addConverterFactory(MoshiConverterFactory.create(moshi))
 //            .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
@@ -239,9 +246,15 @@ class RatesNetworkDataSourceImplTest {
 
         val ratesMockShortApiService = Retrofit.Builder()
             .client(
-                OkHttpClient.Builder().addInterceptor(
-                    MockInterceptor(MockInterceptor.RatesResponses.SHORT)
-                ).build()
+                OkHttpClient.Builder()
+                    .addInterceptor(
+                        MockInterceptor(MockInterceptor.RatesResponses.SHORT)
+                    )
+                    .addInterceptor(
+                        HttpLoggingInterceptor()
+                            .setLevel(HttpLoggingInterceptor.Level.BODY)
+                    )
+                    .build()
             )
             .addConverterFactory(MoshiConverterFactory.create(moshi))
 //            .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))

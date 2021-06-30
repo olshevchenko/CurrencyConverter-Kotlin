@@ -5,18 +5,18 @@ import com.olshevchenko.currencyconverter.core.data.entity.EntityToCurrencyRates
 import com.olshevchenko.currencyconverter.datasource.cache.RatesCacheDataSourceImpl
 import com.olshevchenko.currencyconverter.datasource.local.RatesLocalDataSourceImpl
 import com.olshevchenko.currencyconverter.datasource.net.RatesNetworkDataSourceImpl
-import com.olshevchenko.currencyconverter.features.rates.domain.model.CurrencyCodes
-import com.olshevchenko.currencyconverter.features.rates.domain.model.CurrencyRate
-import com.olshevchenko.currencyconverter.features.rates.domain.model.CurrencyRates
-import com.olshevchenko.currencyconverter.features.rates.domain.model.FromToCodes
-import com.olshevchenko.currencyconverter.features.rates.domain.repository.CurrencyRatesRepository
+import com.olshevchenko.currencyconverter.features.converter.domain.model.CurrencyCodes
+import com.olshevchenko.currencyconverter.features.converter.domain.model.CurrencyRate
+import com.olshevchenko.currencyconverter.features.converter.domain.model.CurrencyRates
+import com.olshevchenko.currencyconverter.features.converter.domain.model.FromToCodes
+import com.olshevchenko.currencyconverter.features.converter.domain.repository.CurrencyRatesRepository
 import io.reactivex.Single
 
 /**
  * Implementation of [CurrencyRatesRepository] interface
  *
- * @param dataFactory - A factory to construct different data source implementations
- * @param dataMapper -  Entity <=> Data CurrencyRate mapper
+ * @param rates_DataSourceImpl - set of different data repositories (api-, cache-, local file-)
+ * @param entityToCurrencyRatesMapper -  Entity <=> Domain-level CurrencyRate mapper
  */
 class RatesRepositoryImpl(
     private val ratesNetworkDataSourceImpl: RatesNetworkDataSourceImpl,
@@ -30,30 +30,33 @@ class RatesRepositoryImpl(
         ratesCacheDataSourceImpl.saveRates(ratesLocalDataSourceImpl.loadRates())
     }
 
+    /**
+     * CURRENT rates list updated in [refreshRates]
+     */
     private var ratesRecent = ratesCacheDataSourceImpl.getRates() // at 1'st, fill rates from cache
 
     /**
-     * Get new / refresh existed currency rates from network and save them in cache if succeded
-     * @return "Success" result (w. updated cache data) or "Error" with old one (converting
-     * 'DataEntity' to domain-level 'CurrencyRates' previously)
+     * Get existed (!!!) currency rates from cache.
+     * Rates have to be saved there preliminarily by calling [refreshRates]
+     * @return "Success" result (w. cache data) converting 'DataEntity' to
+     * domain-level 'CurrencyRates' previously - if ones exist
+     * or "Error" if cache is empty yet
      */
     override fun getRates(): Single<Result<CurrencyRates>> {
-        return ratesNetworkDataSourceImpl.getRates().map { ratesResponse ->
-            if (ratesResponse.resultType == Result.ResultType.SUCCESS) {
-                ratesResponse.data?.let {
-                    // update cache
-                    ratesCacheDataSourceImpl.saveRates(it)
-                    ratesRecent = ratesCacheDataSourceImpl.getRates()
-                }
-                Result.success(
-                    entityToCurrencyRatesMapper.map(ratesRecent)
+        return with(ratesRecent) {
+            if (this.quotes.isEmpty())
+                Single.just(
+                    Result.errorWData(
+                        entityToCurrencyRatesMapper.map(this), // anyway, return empty list
+                        errorDesc = "Existed currency rates list is empty"
+                    )
                 )
-            } else with(ratesResponse) {
-                // return old cache
-                Result.errorWData(
-                    entityToCurrencyRatesMapper.map(ratesRecent),
-                    this.error, this.errorDesc)
-            }
+            else
+                Single.just(
+                    Result.success(
+                        entityToCurrencyRatesMapper.map(this)
+                    )
+                )
         }
     }
 
@@ -62,7 +65,33 @@ class RatesRepositoryImpl(
      */
     override fun saveRates(): Single<Result<Unit>> {
         ratesLocalDataSourceImpl.saveRates(ratesRecent) // ignore possible problems
-        return Single.just(Result.success(Unit))
+        return Single.just(Result.success())
+    }
+
+    /**
+     * Get new / refresh existed currency rates from network and save them in cache if succeded
+     * @return "Success" result + updated timestamp or
+     * "Error" with description depending on operation results
+     */
+    override fun refreshRates(): Single<Result<Long>> {
+        return ratesNetworkDataSourceImpl.getRates().map { ratesResponse ->
+            if (ratesResponse.resultType == Result.ResultType.SUCCESS) {
+                ratesResponse.data?.let {
+                    // update cache
+                    ratesCacheDataSourceImpl.saveRates(it)
+                    ratesRecent = ratesCacheDataSourceImpl.getRates()
+                }
+                Result.success(
+                    ratesCacheDataSourceImpl.getRatesTimestamp()
+                )
+            } else with(ratesResponse) {
+                Result.errorWData(
+                    ratesCacheDataSourceImpl.getRatesTimestamp(),
+                    this.error,
+                    this.errorDesc
+                )
+            }
+        }
     }
 
     override fun getCodes(): Single<Result<CurrencyCodes>> =
@@ -71,6 +100,5 @@ class RatesRepositoryImpl(
     override fun getRate(fromToCodes: FromToCodes?): Single<Result<CurrencyRate>> =
         ratesCacheDataSourceImpl.getRate(fromToCodes)?.let {
             Single.just(Result.success(it))
-        } ?:
-            Single.just(Result.error(errorDesc = "Rate NOT FOUND"))
+        } ?: Single.just(Result.error(errorDesc = "Rate NOT FOUND"))
 }

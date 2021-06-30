@@ -1,3 +1,7 @@
 <resources>
-    <string name="app_name">CurrencyConverter-Kotlin</string>
+    <string name="appName">CurrencyConverter-Kotlin</string>
+    <string name="buttonRefresh">Refresh rates</string>
+
+    <string name="dateTimeFormat">Rates updated on: %s</string>
+
 </resources>

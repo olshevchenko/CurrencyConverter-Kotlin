@@ -5,9 +5,9 @@ import com.olshevchenko.currencyconverter.core.data.entity.RatesDataEntity
 import com.olshevchenko.currencyconverter.datasource.local.model.EntityToLocalMapper
 import com.olshevchenko.currencyconverter.datasource.local.model.LocalToEntityMapper
 import com.olshevchenko.currencyconverter.datasource.local.model.RatesLocal
-import com.olshevchenko.currencyconverter.features.rates.domain.model.CurrencyCodes
-import com.olshevchenko.currencyconverter.features.rates.domain.model.CurrencyRate
-import com.olshevchenko.currencyconverter.features.rates.domain.model.FromToCodes
+import com.olshevchenko.currencyconverter.features.converter.domain.model.CurrencyCodes
+import com.olshevchenko.currencyconverter.features.converter.domain.model.CurrencyRate
+import com.olshevchenko.currencyconverter.features.converter.domain.model.FromToCodes
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -44,6 +44,7 @@ class RatesCacheDataSourceImplTest {
     private val fromToCodesUSDUSD = FromToCodes("USD", "USD")
 
     lateinit var rateUSDUSDQuote: RatesDataEntity.Quote
+    lateinit var rateEUREURQuote: RatesDataEntity.Quote
 
     lateinit var ratesEmptyLocal: RatesLocal
     lateinit var ratesUSDUSDLocal: RatesLocal
@@ -65,17 +66,18 @@ class RatesCacheDataSourceImplTest {
     fun setUp() {
 
         rateUSDUSDQuote = RatesDataEntity.Quote(12345L, 1.0)
+        rateEUREURQuote = RatesDataEntity.Quote(67890L, 1.0)
 
         ratesEmptyLocal = RatesLocal(mapOf())
         ratesUSDUSDLocal = RatesLocal(sortedMapOf(Pair("USDUSD", rateUSDUSDQuote)))
 
         ratesEmptyEntity = RatesDataEntity(mapOf())
         ratesUSDUSDEntity = RatesDataEntity(sortedMapOf(Pair("USDUSD", rateUSDUSDQuote)))
-        ratesEUREUREntity = RatesDataEntity(sortedMapOf(Pair("EUREUR", rateUSDUSDQuote)))
+        ratesEUREUREntity = RatesDataEntity(sortedMapOf(Pair("EUREUR", rateEUREURQuote)))
         ratesUSDUSDEUREUREntity = RatesDataEntity(
             sortedMapOf(
                 Pair("USDUSD", rateUSDUSDQuote),
-                Pair("EUREUR", rateUSDUSDQuote),
+                Pair("EUREUR", rateEUREURQuote),
             )
         )
 
@@ -113,9 +115,14 @@ class RatesCacheDataSourceImplTest {
     fun `should get exactly the same RatesDataEntity instance back which has been saved before`() {
         ratesCacheDataSourceImpl.saveRates(ratesUSDUSDEntity)
         verify(entityToLocalMapperMocked).map(ratesUSDUSDEntity)
-        assertEquals(ratesUSDUSDEntity, ratesCacheDataSourceImpl.getRates())
-        assertNotEquals(ratesEUREUREntity, ratesCacheDataSourceImpl.getRates())
-        assertEquals(1, ratesCacheDataSourceImpl.getRates().quotes.size)
+        assertEquals(
+            ratesUSDUSDEntity,
+            ratesCacheDataSourceImpl.getRates()
+        )
+        assertEquals(
+            1,
+            ratesCacheDataSourceImpl.getRates().quotes.size
+        )
     }
 
     @Test
@@ -123,8 +130,66 @@ class RatesCacheDataSourceImplTest {
     fun `should get correct rates after SEVERAL savings`() {
         ratesCacheDataSourceImpl.saveRates(ratesUSDUSDEntity)
         ratesCacheDataSourceImpl.saveRates(ratesEUREUREntity)
-        assertEquals(ratesUSDUSDEUREUREntity, ratesCacheDataSourceImpl.getRates())
-        assertEquals(2, ratesCacheDataSourceImpl.getRates().quotes.size)
+        assertEquals(
+            ratesUSDUSDEUREUREntity,
+            ratesCacheDataSourceImpl.getRates()
+        )
+        assertEquals(
+            2,
+            ratesCacheDataSourceImpl.getRates().quotes.size
+        )
+    }
+
+    @Test
+//    fun verifyGetRatesTimestamp() {
+    fun `should get '0-time' from empty cache repository at the beginning`() {
+
+        ratesCacheDataSourceImpl = RatesCacheDataSourceImpl(
+            localToEntityMapperMocked, entityToLocalMapperMocked, quoteToCurrencyRateMapperMocked
+        )
+
+        var timeStamp = ratesCacheDataSourceImpl.getRatesTimestamp()
+        verifyNoInteractions(entityToLocalMapperMocked)
+        verifyNoInteractions(localToEntityMapperMocked)
+        assertEquals(0L, timeStamp)
+    }
+
+    @Test
+//    fun verifyGetRatesTimestampAfterSaveUSDUSDRate() {
+    fun `should get correct timestamp after rates saving`() {
+
+        ratesCacheDataSourceImpl = RatesCacheDataSourceImpl(
+            localToEntityMapperMocked, entityToLocalMapperMocked, quoteToCurrencyRateMapperMocked
+        )
+
+        rateUSDUSDQuote = RatesDataEntity.Quote(12345L, 1.0)
+        ratesUSDUSDEntity = RatesDataEntity(sortedMapOf(Pair("USDUSD", rateUSDUSDQuote)))
+
+        ratesCacheDataSourceImpl.saveRates(ratesUSDUSDEntity)
+        var timeStamp = ratesCacheDataSourceImpl.getRatesTimestamp()
+        assertEquals(12345L, timeStamp)
+    }
+
+    @Test
+//    fun verifyGetNewerRatesTimestampAfterSeveralSaveRates() {
+    fun `should get last timestamp after several rates saving`() {
+
+        ratesCacheDataSourceImpl = RatesCacheDataSourceImpl(
+            localToEntityMapperMocked, entityToLocalMapperMocked, quoteToCurrencyRateMapperMocked
+        )
+
+        var timeStamp = ratesCacheDataSourceImpl.getRatesTimestamp()
+        assertEquals(0L, timeStamp)
+
+        ratesCacheDataSourceImpl.saveRates(ratesUSDUSDEntity)
+
+        timeStamp = ratesCacheDataSourceImpl.getRatesTimestamp()
+        assertEquals(12345L, timeStamp)
+
+        ratesCacheDataSourceImpl.saveRates(ratesEUREUREntity)
+
+        timeStamp = ratesCacheDataSourceImpl.getRatesTimestamp()
+        assertEquals(67890L, timeStamp)
     }
 
     @Test
@@ -137,7 +202,10 @@ class RatesCacheDataSourceImplTest {
 
         ratesCacheDataSourceImpl.saveRates(null)
         verifyNoInteractions(entityToLocalMapperMocked)
-        assertEquals(ratesEmptyEntity, ratesCacheDataSourceImpl.getRates())
+        assertEquals(
+            ratesEmptyEntity,
+            ratesCacheDataSourceImpl.getRates()
+        )
         verify(localToEntityMapperMocked, times(1)).map(ratesEmptyLocal)
     }
 
@@ -148,7 +216,10 @@ class RatesCacheDataSourceImplTest {
         ratesCacheDataSourceImpl.saveRates(ratesUSDUSDEntity)
         ratesCacheDataSourceImpl.saveRates(ratesEUREUREntity)
         verify(entityToLocalMapperMocked, times(2)).map(ratesUSDUSDEntity)
-        assertEquals(listOf<String>("USD", "EUR"), ratesCacheDataSourceImpl.getCodes().codes)
+        assertEquals(
+            listOf<String>("USD", "EUR"),
+            ratesCacheDataSourceImpl.getCodes().codes
+        )
     }
 
     @Test
@@ -161,7 +232,10 @@ class RatesCacheDataSourceImplTest {
 
         ratesCacheDataSourceImpl.saveRates(ratesEmptyEntity)
         verify(entityToLocalMapperMocked, times(1)).map(ratesEmptyEntity)
-        assertEquals(CurrencyCodes(listOf()), ratesCacheDataSourceImpl.getCodes())
+        assertEquals(
+            CurrencyCodes(listOf()),
+            ratesCacheDataSourceImpl.getCodes()
+        )
     }
 
     @Test
@@ -169,7 +243,10 @@ class RatesCacheDataSourceImplTest {
     fun `should get null result for nulled 'from-to' currency codes`() {
 
         ratesCacheDataSourceImpl2.saveRates(ratesUSDUSDEntity)
-        assertEquals(null, ratesCacheDataSourceImpl2.getRate(fromToCodesNulled))
+        assertEquals(
+            null,
+            ratesCacheDataSourceImpl2.getRate(fromToCodesNulled)
+        )
         verify(entityToLocalMapperMocked, times(1)).map(ratesUSDUSDEntity)
         verifyNoInteractions(quoteToCurrencyRateMapperMocked)
     }
@@ -179,7 +256,10 @@ class RatesCacheDataSourceImplTest {
     fun `should get null result for incorrect 'from-to' currency code`() {
 
         ratesCacheDataSourceImpl2.saveRates(ratesUSDUSDEntity)
-        assertEquals(null, ratesCacheDataSourceImpl2.getRate(fromToCodesIncorrect))
+        assertEquals(
+            null,
+            ratesCacheDataSourceImpl2.getRate(fromToCodesIncorrect)
+        )
         verify(entityToLocalMapperMocked, times(1)).map(ratesUSDUSDEntity)
         verifyNoInteractions(quoteToCurrencyRateMapperMocked)
     }
@@ -189,7 +269,10 @@ class RatesCacheDataSourceImplTest {
     fun `should get null result if corresponding rate is not found`() {
 
         ratesCacheDataSourceImpl2.saveRates(ratesUSDUSDEntity)
-        assertEquals(null, ratesCacheDataSourceImpl2.getRate(fromToCodesMissed))
+        assertEquals(
+            null,
+            ratesCacheDataSourceImpl2.getRate(fromToCodesMissed)
+        )
         verify(entityToLocalMapperMocked, times(1)).map(ratesUSDUSDEntity)
         verifyNoInteractions(quoteToCurrencyRateMapperMocked)
     }
@@ -198,13 +281,18 @@ class RatesCacheDataSourceImplTest {
 //    fun verifyGetRate4USDUSDCodes() {
     fun `should get correct result for correct and suitable 'from-to' currency code`() {
 
+        rateUSDUSDQuote = RatesDataEntity.Quote(12345L, 1.0)
+        ratesUSDUSDEntity = RatesDataEntity(sortedMapOf(Pair("USDUSD", rateUSDUSDQuote)))
+
         ratesCacheDataSourceImpl2.saveRates(ratesUSDUSDEntity)
-        assertEquals(currencyRateUSDUSD, ratesCacheDataSourceImpl2.getRate(fromToCodesUSDUSD))
+        assertEquals(
+            currencyRateUSDUSD,
+            ratesCacheDataSourceImpl2.getRate(fromToCodesUSDUSD)
+        )
         verify(entityToLocalMapperMocked, times(1)).map(ratesUSDUSDEntity)
         verify(quoteToCurrencyRateMapperMocked, times(1)).map(
             rateUSDUSDQuote, fromToCodesUSDUSD
         )
     }
-
 
 }

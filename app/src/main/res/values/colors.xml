@@ -1,10 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <color name="cyan_200">#FF80DEEA</color>
+    <color name="cyan_300">#FF4DD0E1</color>
+    <color name="cyan_500">#FF00BCD4</color>
+    <color name="cyan_700">#FF0097A7</color>
+    <color name="cyan_900">#FF006064</color>
+
+    <color name="indigo_200">#FF9FA8DA</color>
+    <color name="indigo_300">#FF7986CB</color>
+    <color name="indigo_500">#FF3F51B5</color>
+    <color name="indigo_700">#FF303F9F</color>
+    <color name="indigo_900">#FF1A237E</color>
+
+    <color name="purple_200">#FFCE93D8</color>
+    <color name="purple_300">#FFBA68C8</color>
+    <color name="purple_500">#FF9C27B0</color>
+    <color name="purple_700">#FF7B1FA2</color>
+    <color name="purple_900">#FF4A148C</color>
+
+    <color name="teal_200">#FF80CBC4</color>
+    <color name="teal_300">#FF4DB6AC</color>
+    <color name="teal_500">#FF009688</color>
+    <color name="teal_700">#FF00796B</color>
+    <color name="teal_900">#FF004D40</color>
+
+    <color name="green_200">#FFA5D6A7</color>
+    <color name="green_300">#FF81C784</color>
+    <color name="green_500">#FF4CAF50</color>
+    <color name="green_700">#FF388E3C</color>
+    <color name="green_900">#FF1B5E20</color>
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="darkwhite">#E0E0E0</color>
+    <color name="gray">#DE474747</color>
+
+    <color name="emplTypeBackground">@color/green_500</color>
+    <color name="emplTypeColor">@color/black</color>
+
+    <color name="colorTextPrimary">#FFFFFF</color>
+    <color name="colorTextSecondary">#7f1a18</color>
+
+    <!--    for 'Theme.GHJobWatcher' LIGHT VARIANT style-->
+    <color name="colorPrimary">@color/indigo_500</color>
+    <color name="colorPrimaryVariant">@color/indigo_900</color>
+    <color name="colorOnPrimary">@color/white</color>
+    <color name="colorSecondary">@color/teal_500</color>
+    <color name="colorSecondaryVariant">@color/teal_900</color>
+    <color name="colorOnSecondary">@color/white</color>
+    <color name="colorStatusBar">@color/indigo_900</color>
+
+    <!--    for 'AppBar' LIGHT VARIANT style-->
+    <color name="appBar_background">@color/indigo_700</color>
+    <color name="appBar_color">@color/white</color>
+
+    <!--    for 'CircularProgressDrawable' LIGHT VARIANT style-->
+    <color name="CircProgress_background">@color/indigo_900</color>
+    <color name="CircProgress_color">@color/white</color>
+
+
 </resources>

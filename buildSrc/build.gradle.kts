@@ -1,9 +1,17 @@
+import org.gradle.kotlin.dsl.extra
+import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.`kotlin-dsl`
 
+object BuildDependenciesPluginsVersions {
+    const val GRADLE = "4.2.+"
+    const val KOTLIN = "1.5.10"
+}
+
 object BuildDependenciesPlugins {
-    const val TOOLS_BUILD_GRADLE = "com.android.tools.build:gradle:4.1.3"
-//    const val KOTLIN_GRADLE = "org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.31"
-//    const val detektGradlePlugin = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.14.1"
+    const val TOOLS_BUILD_GRADLE =
+        "com.android.tools.build:gradle:${BuildDependenciesPluginsVersions.GRADLE}"
+    const val KOTLIN_GRADLE_PLUGIN =
+        "org.jetbrains.kotlin:kotlin-gradle-plugin:${BuildDependenciesPluginsVersions.KOTLIN}"
 }
 
 plugins {
@@ -12,12 +20,13 @@ plugins {
 }
 
 repositories {
-    jcenter()
     google()
+    jcenter()
 }
 
 dependencies {
     implementation(BuildDependenciesPlugins.TOOLS_BUILD_GRADLE)
+    implementation(BuildDependenciesPlugins.KOTLIN_GRADLE_PLUGIN)
     implementation(kotlin("stdlib"))
 //    implementation(BuildDependenciesPlugins.KOTLIN_STDLIB)
 //    implementation(BuildDependenciesPlugins.detektGradlePlugin)

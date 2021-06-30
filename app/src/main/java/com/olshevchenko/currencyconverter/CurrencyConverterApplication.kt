@@ -2,7 +2,7 @@ package com.olshevchenko.currencyconverter
 
 import android.app.Application
 import com.olshevchenko.currencyconverter.datasource.di.*
-import com.olshevchenko.currencyconverter.features.di.homeModule
+import com.olshevchenko.currencyconverter.features.di.homeModules
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -19,15 +19,7 @@ class CurrencyConverterApplication : Application() {
         startKoin {
             androidContext(this@CurrencyConverterApplication)
             androidLogger()
-            modules(
-                listOf(
-                    retrofitModule,
-                    networkModules,
-                    datasourceModules,
-                    repositoryModules,
-                    homeModule
-                )
-            )
+            modules(dataModules + homeModules)
         }
     }
 }

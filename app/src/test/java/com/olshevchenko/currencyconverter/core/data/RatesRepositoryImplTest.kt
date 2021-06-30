@@ -9,10 +9,10 @@ import com.olshevchenko.currencyconverter.datasource.local.RatesLocalDataSourceI
 import com.olshevchenko.currencyconverter.datasource.local.model.EntityToLocalMapper
 import com.olshevchenko.currencyconverter.datasource.local.model.LocalToEntityMapper
 import com.olshevchenko.currencyconverter.datasource.net.RatesNetworkDataSourceImpl
-import com.olshevchenko.currencyconverter.features.rates.domain.model.CurrencyCodes
-import com.olshevchenko.currencyconverter.features.rates.domain.model.CurrencyRate
-import com.olshevchenko.currencyconverter.features.rates.domain.model.CurrencyRates
-import com.olshevchenko.currencyconverter.features.rates.domain.model.FromToCodes
+import com.olshevchenko.currencyconverter.features.converter.domain.model.CurrencyCodes
+import com.olshevchenko.currencyconverter.features.converter.domain.model.CurrencyRate
+import com.olshevchenko.currencyconverter.features.converter.domain.model.CurrencyRates
+import com.olshevchenko.currencyconverter.features.converter.domain.model.FromToCodes
 import io.reactivex.Single
 import io.reactivex.observers.TestObserver
 import org.junit.After
@@ -39,17 +39,21 @@ class RatesRepositoryImplTest {
     private lateinit var ratesRepositoryImpl: RatesRepositoryImpl
 
     @Mock
+    private lateinit var ratesNetworkDataSourceImplMocked: RatesNetworkDataSourceImpl
+    @Mock
+    private lateinit var ratesNetworkDataSourceFailImplMocked: RatesNetworkDataSourceImpl
+    @Mock
     private lateinit var ratesNetworkDataSourceInitImplMocked: RatesNetworkDataSourceImpl
+
 
     @Mock
     private lateinit var ratesCacheDataSourceImplMocked: RatesCacheDataSourceImpl
-
     @Mock
     private lateinit var ratesLocalDataSourceImplMocked: RatesLocalDataSourceImpl
-
     @Mock
     private lateinit var ratesLocalDataSourceInitImplMocked: RatesLocalDataSourceImpl
-
+    @Mock
+    private lateinit var ratesLocalDataSourceEmptyImplMocked: RatesLocalDataSourceImpl
     @Mock
     private lateinit var ratesCacheDataSourceInitImplMocked: RatesCacheDataSourceImpl
 
@@ -72,6 +76,10 @@ class RatesRepositoryImplTest {
         0.8, 12345L.toString()
     )
 
+    val currencyRatesEmpty = CurrencyRates(
+        listOf()
+    )
+
     val currencyRatesUSDGBP = CurrencyRates(
         listOf(currencyRateUSDGBP)
     )
@@ -86,7 +94,7 @@ class RatesRepositoryImplTest {
     val currencyEmptyCodes = CurrencyCodes(listOf())
     val currencyUSDEURCodes = CurrencyCodes(listOf("USD", "EUR"))
 
-    private val rateUSDEURQuote = RatesDataEntity.Quote(12345L, 0.8)
+    private val rateUSDEURQuote = RatesDataEntity.Quote(67890L, 0.8)
     private val rateUSDGBPQuote = RatesDataEntity.Quote(12345L, 0.7)
 
     private val ratesEmptyEntity = RatesDataEntity(mapOf())
@@ -122,33 +130,31 @@ class RatesRepositoryImplTest {
         `when`(ratesCacheDataSourceImplMocked.getRate(fromToCodesIncorrect))
             .thenReturn(null)
 
+        `when`(entityToCurrencyRatesMapperMocked.map(ratesEmptyEntity))
+            .thenReturn(currencyRatesEmpty)
+
         `when`(entityToCurrencyRatesMapperMocked.map(ratesUSDGBPUSDEUREntity))
             .thenReturn(currencyRatesUSDGBPUSDEUR)
 
         `when`(entityToCurrencyRatesMapperMocked.map(ratesUSDGBPEntity))
             .thenReturn(currencyRatesUSDGBP)
 
-        ratesRepositoryImpl = RatesRepositoryImpl(
-            ratesNetworkDataSourceInitImplMocked,
-            ratesCacheDataSourceImplMocked,
-            ratesLocalDataSourceImplMocked,
-            entityToCurrencyRatesMapperMocked
-        )
-
         /**
          * Mock RatesRepositoryImpl() init {} block
          */
+        `when`(ratesLocalDataSourceEmptyImplMocked.loadRates())
+            .thenReturn(ratesEmptyEntity)
+
         `when`(ratesLocalDataSourceInitImplMocked.loadRates())
             .thenReturn(ratesUSDGBPEntity)
 
         `when`(ratesCacheDataSourceInitImplMocked.getRates())
             .thenReturn(ratesUSDGBPEntity)
 
-        `when`(ratesNetworkDataSourceInitImplMocked.getRates())
+        `when`(ratesNetworkDataSourceFailImplMocked.getRates())
             .thenReturn(
                 Single.just(Result.error<RatesDataEntity>(errorDesc = "network err"))
             )
-
 
     }
 
@@ -158,11 +164,39 @@ class RatesRepositoryImplTest {
 
 
     @Test
-//    fun verifyInitialStepsAndNetworkingFail() {
-    fun `should execute initial steps correctly and process network fail correctly`() {
+//    fun verifyInitialStepsAndGettingEmptyList() {
+    fun `should execute initial steps correctly and process getRates with empty list result correctly`() {
 
         ratesRepositoryImpl = RatesRepositoryImpl(
-            ratesNetworkDataSourceInitImplMocked,
+            ratesNetworkDataSourceFailImplMocked,
+            RatesCacheDataSourceImpl(
+                LocalToEntityMapper, EntityToLocalMapper, QuoteToCurrencyRateMapper,
+            ),
+            ratesLocalDataSourceEmptyImplMocked,
+            entityToCurrencyRatesMapperMocked
+        )
+
+        val observer = TestObserver<Result<CurrencyRates>>()
+
+        ratesRepositoryImpl.getRates().subscribe(observer)
+        observer.assertNoErrors()
+        observer.assertComplete()
+        observer.assertValue(Result.errorWData(
+            currencyRatesEmpty, errorDesc = "Existed currency rates list is empty"))
+        verify(ratesLocalDataSourceEmptyImplMocked, times(1)).loadRates()
+        verifyNoInteractions(ratesNetworkDataSourceFailImplMocked)
+        verify(
+            entityToCurrencyRatesMapperMocked,
+            times(1)
+        ).map(ratesEmptyEntity)
+    }
+
+    @Test
+//    fun verifyInitialStepsAndGettingCorrectList() {
+    fun `should execute initial steps correctly and process getRates with correct non-empty LOCAL list result correctly`() {
+
+        ratesRepositoryImpl = RatesRepositoryImpl(
+            ratesNetworkDataSourceFailImplMocked,
             ratesCacheDataSourceInitImplMocked,
             ratesLocalDataSourceInitImplMocked,
             entityToCurrencyRatesMapperMocked
@@ -173,11 +207,11 @@ class RatesRepositoryImplTest {
         ratesRepositoryImpl.getRates().subscribe(observer)
         observer.assertNoErrors()
         observer.assertComplete()
-        observer.assertValue(Result.errorWData(currencyRatesUSDGBP, errorDesc = "network err"))
+        observer.assertValue(Result.success(currencyRatesUSDGBP))
         verify(ratesLocalDataSourceInitImplMocked, times(1)).loadRates()
         verify(ratesCacheDataSourceInitImplMocked, times(1)).saveRates(Mockito.any())
         verify(ratesCacheDataSourceInitImplMocked, times(1)).getRates()
-        verify(ratesNetworkDataSourceInitImplMocked, times(1)).getRates()
+        verifyNoInteractions(ratesNetworkDataSourceFailImplMocked)
         verify(
             entityToCurrencyRatesMapperMocked,
             times(1)
@@ -185,13 +219,39 @@ class RatesRepositoryImplTest {
     }
 
     @Test
-//    fun verifyInitialStepsAndNetworking2() {
-    fun `should execute initial steps correctly and merging with network updates correctly, then save rates`() {
+//    fun verifyRefreshWithNetworkingFail() {
+    fun `should process refreshRates with network fail correctly`() {
+
+        ratesRepositoryImpl = RatesRepositoryImpl(
+            ratesNetworkDataSourceFailImplMocked,
+            ratesCacheDataSourceInitImplMocked,
+            ratesLocalDataSourceInitImplMocked,
+            entityToCurrencyRatesMapperMocked
+        )
+
+        `when`(ratesCacheDataSourceInitImplMocked.getRatesTimestamp())
+            .thenReturn(357L)
+
+        val observer = TestObserver<Result<Long>>()
+
+        ratesRepositoryImpl.refreshRates().subscribe(observer)
+        observer.assertNoErrors()
+        observer.assertComplete()
+        observer.assertValue(Result.errorWData(357L, errorDesc = "network err"))
+        verify(ratesCacheDataSourceInitImplMocked, times(1)).saveRates(Mockito.any())
+        verify(ratesCacheDataSourceInitImplMocked, times(1)).getRates()
+        verify(ratesNetworkDataSourceFailImplMocked, times(1)).getRates()
+        verifyNoInteractions(entityToCurrencyRatesMapperMocked)
+    }
+
+    @Test
+//    fun verifyCorrectNetworking() {
+    fun `should process refreshRates with network updates correctly, then get and save rates`() {
 
         /**
          * mock network response to correct form
          */
-        `when`(ratesNetworkDataSourceInitImplMocked.getRates())
+        `when`(ratesNetworkDataSourceImplMocked.getRates())
             .thenReturn(
                 Single.just(Result.success(ratesUSDEUREntity))
             )
@@ -203,7 +263,7 @@ class RatesRepositoryImplTest {
          * initially fill cache from mocked LocalDataSource (by ratesUSDGBPEntity)
          */
         ratesRepositoryImpl = RatesRepositoryImpl(
-            ratesNetworkDataSourceInitImplMocked,
+            ratesNetworkDataSourceImplMocked,
             RatesCacheDataSourceImpl(
                 LocalToEntityMapper, EntityToLocalMapper, QuoteToCurrencyRateMapper,
             ),
@@ -211,11 +271,21 @@ class RatesRepositoryImplTest {
             entityToCurrencyRatesMapperMocked
         )
 
-        val observerGetting = TestObserver<Result<CurrencyRates>>()
+        val observerRefreshing = TestObserver<Result<Long>>()
 
         /**
          * merge initial cache value with netw. response (ratesUSDEUREntity)
          */
+        ratesRepositoryImpl.refreshRates().subscribe(observerRefreshing)
+        observerRefreshing.assertNoErrors()
+        observerRefreshing.assertComplete()
+        observerRefreshing.assertValue(Result.success(67890L))
+
+        /**
+         * get merged cache value
+         */
+        val observerGetting = TestObserver<Result<CurrencyRates>>()
+
         ratesRepositoryImpl.getRates().subscribe(observerGetting)
         observerGetting.assertNoErrors()
         observerGetting.assertComplete()
@@ -232,7 +302,7 @@ class RatesRepositoryImplTest {
         ratesRepositoryImpl.saveRates().subscribe(observerSaving)
         observerSaving.assertNoErrors()
         observerSaving.assertComplete()
-        observerSaving.assertValue(Result.success(Unit))
+        observerSaving.assertValue(Result.success())
         verify(
             ratesLocalDataSourceInitImplMocked,
             times(1)
@@ -244,11 +314,18 @@ class RatesRepositoryImplTest {
     fun `should return list of all existed pairs of codes`() {
         val observer = TestObserver<Result<CurrencyCodes>>()
 
+        ratesRepositoryImpl = RatesRepositoryImpl(
+            ratesNetworkDataSourceFailImplMocked,
+            ratesCacheDataSourceImplMocked,
+            ratesLocalDataSourceImplMocked,
+            entityToCurrencyRatesMapperMocked
+        )
+
         ratesRepositoryImpl.getCodes().subscribe(observer)
         observer.assertNoErrors()
         observer.assertComplete()
         observer.assertValue(Result.success(currencyUSDEURCodes))
-        verifyNoInteractions(ratesNetworkDataSourceInitImplMocked)
+        verifyNoInteractions(ratesNetworkDataSourceFailImplMocked)
         verify(ratesCacheDataSourceImplMocked, times(1)).getCodes()
         verify(ratesCacheDataSourceImplMocked, times(1)).saveRates(Mockito.any())
         verify(ratesLocalDataSourceImplMocked, times(1)).loadRates()
@@ -258,6 +335,13 @@ class RatesRepositoryImplTest {
 //    fun verifyGetCorrectRate() {
     fun `should return suitable rate for given pair of codes if one existed`() {
         val observer = TestObserver<Result<CurrencyRate>>()
+
+        ratesRepositoryImpl = RatesRepositoryImpl(
+            ratesNetworkDataSourceFailImplMocked,
+            ratesCacheDataSourceImplMocked,
+            ratesLocalDataSourceImplMocked,
+            entityToCurrencyRatesMapperMocked
+        )
 
         ratesRepositoryImpl.getRate(fromToCodesCorrect).subscribe(observer)
         observer.assertNoErrors()
@@ -270,6 +354,13 @@ class RatesRepositoryImplTest {
 //    fun verifyGetIncorrectRate() {
     fun `should return error for unknown pair of codes`() {
         val observer = TestObserver<Result<CurrencyRate>>()
+
+        ratesRepositoryImpl = RatesRepositoryImpl(
+            ratesNetworkDataSourceFailImplMocked,
+            ratesCacheDataSourceImplMocked,
+            ratesLocalDataSourceImplMocked,
+            entityToCurrencyRatesMapperMocked
+        )
 
         ratesRepositoryImpl.getRate(fromToCodesIncorrect)
             .subscribe(observer)

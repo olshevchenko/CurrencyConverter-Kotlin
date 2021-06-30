@@ -2,11 +2,11 @@ object BuildDependencies {
 
     object Android {
         const val ANDROID_APPLICATION = "com.android.application"
-        const val APP_COMPAT = "androidx.appcompat:appcompat:${BuildVersions.Android.APP_COMPAT}"
+//        const val APP_COMPAT = "androidx.appcompat:appcompat:${BuildVersions.Android.APP_COMPAT}"
     }
 
     object App {
-        const val CORE_KTX = "androidx.core:core-ktx:${BuildVersions.App.CORE_KTX}"
+        const val CORE_KTX = "androidx.core:core-ktx:${BuildVersions.BuildPlugins.KOTLIN_CORE}"
     }
 
     object Asynchronous {
@@ -26,10 +26,8 @@ object BuildDependencies {
     }
 
     object DI {
-        const val KOIN_ANDROID = "org.koin:koin-android:${BuildVersions.DI.KOIN}"
-        const val KOIN_SCOPE_FEATURES = "org.koin:koin-androidx-scope:${BuildVersions.DI.KOIN}"
-        const val KOIN_VIEWMODEL_FEATURES =
-            "org.koin:koin-androidx-viewmodel:${BuildVersions.DI.KOIN}"
+        const val KOIN_MAIN = "io.insert-koin:koin-android:${BuildVersions.DI.KOIN}"
+        const val KOIN_ANDROID = "io.insert-koin:koin-android-ext:${BuildVersions.DI.KOIN_EXT}"
     }
 
     object Kotlin {
@@ -62,6 +60,8 @@ object BuildDependencies {
             "com.squareup.retrofit2:adapter-rxjava2:${BuildVersions.Network.RETROFIT}"
         const val RETROFIT_MOSHI =
             "com.squareup.retrofit2:converter-moshi:${BuildVersions.Network.RETROFIT}"
+        const val RETROFIT_LOGGER =
+            "com.squareup.okhttp3:logging-interceptor:${BuildVersions.Network.OKHTTP}"
     }
 
     object UI {
@@ -78,13 +78,21 @@ object BuildDependencies {
     }
 
     object Testing {
+        const val ARCH_CORE =
+            "androidx.arch.core:core-testing:${BuildVersions.Testing.ARCH_CORE}"
+
         const val ESPRESSO_CORE =
             "androidx.test.espresso:espresso-core:${BuildVersions.Testing.ESPRESSO_CORE}"
+
         const val JUNIT = "junit:junit:${BuildVersions.Testing.JUNIT}"
         const val JUNIT_ASSERT = "androidx.test.ext:junit:${BuildVersions.Testing.JUNIT_ASSERT}"
 
-        //        const val JUNIT5 = "io.kotlintest:kotlintest-runner-junit5:${BuildVersions.Testing.JUNIT5}"
-//        const val MOCKITO = "com.nhaarman.mockitokotlin2:mockito-kotlin:${BuildVersions.Testing.MOCKITO}"
+        const val KOIN_TEST = "io.insert-koin:koin-test:${BuildVersions.DI.KOIN}"
+        const val KOIN_TEST_JUNIT = "io.insert-koin:koin-test-junit4:${BuildVersions.DI.KOIN}"
+
+        const val MOCKK = "io.mockk:mockk:${BuildVersions.Testing.MOCKK}"
+        const val MOCKK_ANDROID = "io.mockk:mockk-android:${BuildVersions.Testing.MOCKK}"
+
         const val MOCKITO_CORE = "org.mockito:mockito-core:${BuildVersions.Testing.MOCKITO}"
 
         const val POWERMOCK_API =

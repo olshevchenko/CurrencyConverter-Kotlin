@@ -3,6 +3,8 @@ package com.olshevchenko.currencyconverter.datasource.net.api
 import android.util.Log
 import com.olshevchenko.currencyconverter.BuildConfig
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.ResponseBody.Companion.toResponseBody
 
 class MockInterceptor(var responseType: RatesResponses) : Interceptor {
 
@@ -50,11 +52,11 @@ class MockInterceptor(var responseType: RatesResponses) : Interceptor {
                 "MockInterceptor is for Test/Debug purposes only and to be used with DEBUG mode"
             )
         }
-        val uri = chain.request().url().uri().toString()
-        Log.i(
-            "MockInterceptor",
-            "uri = '$uri'"
-        )
+//        val uri = chain.request().url().uri().toString()
+//        Log.i(
+//            "MockInterceptor",
+//            "uri = '$uri'"
+//        )
 
         return chain.proceed(chain.request())
             .newBuilder()
@@ -62,10 +64,8 @@ class MockInterceptor(var responseType: RatesResponses) : Interceptor {
             .protocol(Protocol.HTTP_2)
             .message(responseType.json)
             .body(
-                ResponseBody.create(
-                    MediaType.parse("application/json"),
-                    responseType.json.toByteArray()
-                )
+                responseType.json.toByteArray()
+                    .toResponseBody("application/json".toMediaTypeOrNull())
             )
             .addHeader("content-type", "application/json")
             .build()

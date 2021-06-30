@@ -13,6 +13,7 @@ import java.io.File
 
 /**
  * Local rates saved to & loaded from local file
+ * ToDo !!! Need to have preliminary prepared local file with single "USDUSD" currency rate
  */
 class RatesLocalDataSourceImpl(
     private val file: File,
@@ -26,15 +27,14 @@ class RatesLocalDataSourceImpl(
      */
     fun loadRates(): RatesDataEntity {
         val jsonRates = if (file.isFile) file.readText(Charsets.UTF_8) else ""
-        try {
-            return localToEntityMapper.map(Json.decodeFromString(jsonRates))
-        }catch (ex: SerializationException) {
+        return try {
+            localToEntityMapper.map(Json.decodeFromString(jsonRates))
+        } catch (ex: SerializationException) {
             Log.w(
                 "RatesLocalDataSource",
                 "File with local rates ('${file.name}') parsing error => ignore it.."
             )
-            return localToEntityMapper.map(RatesLocal(mapOf()))
-
+            localToEntityMapper.map(RatesLocal(mapOf()))
         }
     }
 

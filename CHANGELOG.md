@@ -160,14 +160,14 @@ RatesRepositoryImpl (@Test для getRates()).
 
 
 ##2020-04-14
-- #### Changed
+#### Changed
 - [core/Utils.kt] - сюда перемещён класс Utils.CurrencyCodes (из [core/data/entityRatesDataEntity.kt])
 - [features/rates/domain/repository/CurrencyRatesRepository.kt] - изменён тип возврата 
 CurrencyRatesRepository.getRates() с DataEntity- уровня на Domain- (Single<Result<CurrencyRates>>). 
 Соотв-но, изменены: 
 [core/data/RatesRepositoryImpl.kt] - метод RatesRepositoryImpl.getRates()
 [features/rates/domain/usecase/GetCurrencyRatesUseCase.kt] - метод GetCurrencyRatesUseCase.buildUseCaseSingle()
-- #### Added
+#### Added
 - [datasource/cache/RatesCacheDataSourceImpl.kt] - маппер QuoteToCurrencyRateMapper добавлен 
 в параметры конструктора класса.
 #### Processed
@@ -186,17 +186,17 @@ RatesNetworkDataSourceImpl, добавление расширенной функ
 
 
 ##2020-04-18
-- #### Changed
+#### Changed
 - [core/data/RatesRepositoryImpl.kt] - добавлен параметр конструктора - межслойный конвертер 
 EntityToCurrencyRatesMapper. 
 
 ##2020-04-19
 #### Processed
 - [app/src/test/java/.../datasource/net/RatesNetworkDataSourceImplTest.kt] - дополнение Unit-тестов. 
-- #### Changed
+#### Changed
 - [datasource/cache/RatesCacheDataSourceImpl.kt] - упрощено хранение кэша курсов валют (теперь просто
 mutableMapOf<String, RatesDataEntity.Quote>() вместо RatesLocal).
-- #### Milestone
+#### Milestone
 - Github - публикация проекта.
 
 ##2020-04-[23-25]
@@ -204,7 +204,7 @@ mutableMapOf<String, RatesDataEntity.Quote>() вместо RatesLocal).
 - features/rates/presentation - создание слоя Presenter для курсов валют:
 [features/rates/presentation/RatesContract.kt] - контракт VP в MVP-модели
 [features/rates/presentation/RatesListPresenter.kt] - презентер списка курсов валют 
-- #### Changed
+#### Changed
 - [core/usecase/RXUseCase.kt] - добавление функторов для обратной связи с UI при выполнении UseCase-ов
  
 ##2020-04-[25-26]
@@ -213,7 +213,7 @@ mutableMapOf<String, RatesDataEntity.Quote>() вместо RatesLocal).
 - [app/src/test/java/.../features/rates/domain/usecase/GetCurrencyRatesUseCaseTest.kt], 
 [app/src/test/java/.../features/rates/presentation/RatesListPresenterTest.kt] - написание
 Unit-тестов для GetCurrencyRatesUseCase, RatesListPresenter.
-- #### Fixed
+#### Fixed
 - добавлен файл [app/src/test/resources/.../datasource/local/SavedRatesDir/.gitkeep] для занесения 
 в Git тестового каталога 'SavedRatesDir' 
  
@@ -223,3 +223,157 @@ Unit-тестов для GetCurrencyRatesUseCase, RatesListPresenter.
 #### Processed
 - [app/src/test/java/.../features/rates/presentation/RatesListPresenterTest.kt] - завершение 
 Unit-тестов для RatesListPresenter. 
+#### Added
+- Github - коммит (v.0.1).
+
+##2020-05-03
+#### Changed
+- [features] - переименование фич/пакетов/каталогов проекта: 
+"features.rates" переименован в "features.converter" для правильного отображения бизнес-слоя. 
+- [features/converter/domain/repository/CurrencyRatesRepository.kt] - изменён и расширен интерфейс:
+добавлен метод refreshRates() - для обновления курсов валют, getRates() теперь просто 
+возвращает существующий (на данный момент, т.е., старый) список.
+- [features/converter/domain/usecase/RefreshCurrencyRatesUseCase.kt] - реализован новый UseCase
+- [core/data/RatesRepositoryImpl.kt] - реализован новый refreshRates(), упрощён getRates() 
+(логика обработки рез-тов сетевого запроса перенесена в refreshRates()).
+
+##2020-05-[04-05]
+#### Processed
+- [app/src/test/java/.../core/data/RatesRepositoryImplTest.kt] - дополнение Unit-тестов  
+RatesRepositoryImpl (@Test для refreshRates(), изменения для getRates()).
+
+##2020-05-[06-08]
+#### Processed
+- [features/rates] - переименование в [features/converter]
+Дальнейшее Развитие [features/converter/presentation/ConverterContract.kt] - разделение на отдельные 
+контракты и группы модулей:   
+[features/converter/presentation/CurrencyCodes..] ..Contract.kt, ..Presenter.kt, View.kt, ViewModel.kt, 
+[features/converter/presentation/RefreshRates..] ..Contract.kt, ..Presenter.kt, View.kt, ViewModel.kt,
+[features/converter/presentation/CurrencyRate..] ..Contract.kt, ..Presenter.kt, View.kt, ViewModel.kt
+
+##2020-05-10
+#### Added
+- [features/rates/presentation/model] - добавление модулей описания данных рез-тов выполнения
+usecase-ов доменного слоя: [CodesUI.kt], [RateUI.kt], [RefreshResultUI.kt] вместе с - ОДНОСТОРОННИМИ -
+ мапперами преобразования       
+
+##2020-05-16
+#### Added
+- [features/converter/domain/usecase/RefreshCurrencyRatesUseCase.kt],
+[features/converter/domain/repository/CurrencyRatesRepository.kt], [core/data/RatesRepositoryImpl.kt],
+[datasource/cache/RatesCacheDataSourceImpl.kt] - в возвращаемый результат обновления курсов валют  
+добавлена ДАТА курсов (из новых курсов, если операция успешна, или из имеющегося кэша, в случае 
+ошибка с сетью).
+- [features/di/HomeModules.kt] - добавлены модули DI для presentation-слоя: презентеры и 
+ConverterViewModel.
+- [features/converter/presentation/ConverterFragment.kt] - добавлены Koin-инъекции презентеров и 
+ConverterViewModel, добавлена работа с dataBinding - полями.  
+
+##2020-05-17
+#### Added
+- [features/converter/presentation/RefreshPresenter.kt] - добавлен презентер для обновления курсов валют.
+- [features/operations/presentation/OperationsContracts.kt] - реализованы наброски контракта для 2-й фичи: 
+- [app/src/test/java/.../features/converter/domain/usecase/RefreshCurrencyRatesUseCaseTest.kt] - 
+реализованы Unit-тесты класса RefreshCurrencyRatesUseCase.
+#### Processed
+- [app/src/test/java/.../core/data/RatesRepositoryImplTest.kt] - изменения Unit-тестов  
+RatesRepositoryImpl для refreshRates() из-за переноса логики реализации (из refresh в getRates()). 
+
+##2020-05-20-22
+#### Added
+- [res/layout/fragment_converter.xml] - продолжение р-ты с DataBinding-полями
+
+##2020-05-[23-27]
+#### Processed
+- Android Studio, [build.gradle...] - возня, миграция версий, активация KAPT в проекте, ...
+#### Added
+- [app/src/test/java/.../features/converter/presentation/RefreshPresenterTest.kt] - написаны Unit-тесты 
+класса RefreshPresenter.
+- [app/src/test/java/.../datasource/cache/RatesCacheDataSourceImplTest.kt] - добавлены Unit-тесты 
+проверки работы с таймштампом курсов валют.
+
+##2020-05-[28-30]
+#### Added
+- [features/converter/presentation/model/RefreshResultUI.kt], [core/Utils.kt] - реализовано 
+преобразование даты обновления курсов в UI-формат (Long => formatted String)  
+- [features/converter/presentation/RefreshPresenter.kt] - добавлено (в parseRefreshResult()) 
+преобразование даты обновления курсов из доменного формата (Long) в UI- (formatted String).
+- [core/data/RatesRepositoryImpl.kt], [features/converter/domain/repository/CurrencyRatesRepository.kt],
+[features/converter/domain/usecase/RefreshCurrencyRatesUseCase.kt] - тип рез-та refreshRates() 
+изменён на непреобразованный, внутридоменный: <Result<Long>>
+
+##2020-05-[30-31]
+#### Added
+- [features/converter/presentation/ConverterContracts.kt], 
+[features/converter/presentation/ConverterFragment.kt] - добавлен контракт для View (неявный 
+контракт - р-та с полями данных, ЯВНЫЙ - обновление состояний ViewModel), 
+добавляется р-та с обзёрверами состояний ViewModel (обновление курсов, загрузка списка валют)
+- [features/converter/presentation/ConverterViewModel.kt] - добавлены LiveData для состояний потоков
+данных (domain->presenters->viewmodel->view): isRefreshingState, isCodesLoadingState, gettingRateError  
+#### Removed
+- [core/presentation/BaseView.kt] - убран базовый класс/интерфейс для View 
+
+##2020-06-[05-08]
+#### Added
+- [res/layout/fragment_converter.xml] - упрощена логики связки DataBinding-поля isRefreshingState 
+с отрисовкой спиннера "pb_refreshing" - теперь явно в разметке.
+
+##2020-06-[08-11]
+#### Changed
+- [app/src/test/java/.../features/converter/presentation/ConverterViewModelTest.kt] - написание 
+Unit-тестов класса ConverterViewModel. Вместо Mockito впервые используется MockK.
+
+##2020-06-12
+#### Changed
+- [core/Utils.kt] => [core/UtilExt.kt]- класс полностью переделан на Kotlin extensions.
+
+##2020-06-[17-18]
+#### Changed
+- [app/src/test/java/.../features/converter/presentation/RefreshPresenterTest.kt],
+[app/src/test/java/.../features/converter/presentation/ConverterViewModelTest.kt] - миграция на MockK,
+для проверки состояний ConverterViewModel.RefreshViewState впервые применён verifySequence.
+
+##2020-06-[19-21]
+#### Added
+- [app/src/test/java/.../features/converter/di/ConverterKoinTest.kt] - написание Unit-тестов 
+уровня презентации (presenter + viewModel) на базе KoinTest.
+- [features/di/HomeModules.kt] - Koin-модули перегруппированы и разбиты на списки (useCase + presentation).
+
+##2020-06-[23-30]
+#### Processed
+- [app/src/test/java/.../features/converter/di/ConverterKoinTest.kt] - доработка, отладка Unit-тестов 
+уровня презентации на базе KoinTest.
+#### Fixed
+- [features/converter/presentation/RefreshPresenter.kt], [.../CodesPresenter.kt], [.../RatePresenter.kt]
+ - исправлены создания обзёрверов выполнения RX-запроса (теперь они динамические для каждого 
+ вызова .execute()).
+
+##2020-06-30
+#### Added
+- Github - коммит (v.0.2 - Редизайн слоя Features/Presentation, доработка слоя Koin. Добавление 
+DataBinding в ConverterFragment. Внедрение LiveData-полей ConverterViewModel в ConverterFragment. 
+Замена Mockito на MockK в новых Unit-тестах. Добавление Unit-тестов для Converter/Refresh- фичи 
+(слои ViewModel, Presenter, Koin)). 
+
+ 
+
+############################################################################
+############################################################################
+############################################################################
+#### ToDo
+
+##2020-05-10
+- [features/converter/presentation/ConverterPresenter.kt] - 
+добавить логику быстрого возврата значений курса "1.0" для конвертации типа "USD-USD" - вообще БЕЗ 
+проброса в доменный и далее слои. 
+
+##2020-05-12
+- [core/data/entity/RatesDataEntity.kt] - вынести qTimestamp из-под Quote вверх!!!
+
+##2020-05-30
+- [core/Result.kt] - добавлен тип ошибки, использовать его ВМЕСТО поля val error: Exception? !!!
+
+##2020-06-04
+Тестирование Koin + ViewModels - добавить!!!:
+- [T_Ekito_koin-samples-master/samples/android-weatherapp-mvvm/app/src/test/java/org/koin/sampleapp/DryRunTest.kt]
+

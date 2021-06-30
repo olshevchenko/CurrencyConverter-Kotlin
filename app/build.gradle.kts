@@ -22,9 +22,15 @@ android {
         testInstrumentationRunner(BuildConfig.TEST_INSTRUMENTATION_RUNNER)
     }
 
+    buildFeatures {
+        dataBinding = true
+//        viewBinding = true
+    }
+
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -40,6 +46,7 @@ android {
     }
     testOptions {
         unitTests {
+            isReturnDefaultValues = true
             isIncludeAndroidResources = true
         }
     }
@@ -71,6 +78,7 @@ dependencies {
     implementation(BuildDependencies.Network.RETROFIT)
     implementation(BuildDependencies.Network.RETROFIT_ADAPTER)
     implementation(BuildDependencies.Network.RETROFIT_MOSHI)
+    implementation(BuildDependencies.Network.RETROFIT_LOGGER)
 
     //Rx
     implementation(BuildDependencies.Asynchronous.RX_ANDROID)
@@ -81,14 +89,20 @@ dependencies {
     implementation(BuildDependencies.UI.MATERIAL)
 
     //DI
+    implementation(BuildDependencies.DI.KOIN_MAIN)
     implementation(BuildDependencies.DI.KOIN_ANDROID)
 
     //Tests
+    testImplementation(BuildDependencies.Testing.ARCH_CORE)
     testImplementation(BuildDependencies.Testing.JUNIT)
+    testImplementation(BuildDependencies.Testing.KOIN_TEST)
+    testImplementation(BuildDependencies.Testing.KOIN_TEST_JUNIT)
+    testImplementation(BuildDependencies.Testing.MOCKK)
     testImplementation(BuildDependencies.Testing.MOCKITO_CORE)
     testImplementation(BuildDependencies.Testing.POWERMOCK_API)
     testImplementation(BuildDependencies.Testing.POWERMOCK_JUNIT)
     testImplementation(BuildDependencies.Testing.ROBOLECTRIC)
     androidTestImplementation(BuildDependencies.Testing.JUNIT_ASSERT)
     androidTestImplementation(BuildDependencies.Testing.ESPRESSO_CORE)
+    androidTestImplementation(BuildDependencies.Testing.MOCKK_ANDROID)
 }

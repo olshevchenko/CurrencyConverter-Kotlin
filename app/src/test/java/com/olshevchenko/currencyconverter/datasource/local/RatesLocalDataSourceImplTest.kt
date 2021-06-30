@@ -118,20 +118,23 @@ class RatesLocalDataSourceImplTest {
     @Test
 //    fun verifyLoadRates() {
     fun `should successfully load RatesDataEntity previously saved into the file`() {
-        var ratesEntities2Load = ratesLocalDataSourceImpl.loadRates()
-        assertEquals(ratesEntities2Save3Pairs, ratesEntities2Load)
+        assertEquals(
+            ratesEntities2Save3Pairs,
+            ratesLocalDataSourceImpl.loadRates()
+        )
     }
 
 
     @Test
 //    fun verifySaveAndThenLoadEmptyRates() {
     fun `should successfully load EMPTY RatesEntity previously saved into the file`() {
-        var result = ratesLocalDataSourceImpl.saveRates(ratesEntities2Save3Pairs)
-        assertTrue(result)
-        result = ratesLocalDataSourceImpl.saveRates(ratesEmptyEntity)
-        assertTrue(result)
+        assertTrue(ratesLocalDataSourceImpl.saveRates(ratesEntities2Save3Pairs))
+        assertTrue(ratesLocalDataSourceImpl.saveRates(ratesEmptyEntity))
         var ratesEntitiesLoaded = ratesLocalDataSourceImpl.loadRates()
-        assertNotEquals(ratesEntities2Save3Pairs, ratesEntitiesLoaded)
+        assertNotEquals(
+            ratesEntities2Save3Pairs,
+            ratesEntitiesLoaded
+        )
         assertEquals(ratesEmptyEntity, ratesEntitiesLoaded)
     }
 

@@ -1,4 +1,3 @@
-//import com.olshevchenko.currencyconverter.BuildDependencies
 
 plugins {
     `kotlin-dsl`

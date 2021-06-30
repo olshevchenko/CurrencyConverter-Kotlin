@@ -11,9 +11,12 @@ import com.olshevchenko.currencyconverter.datasource.local.model.LocalToEntityMa
 import com.olshevchenko.currencyconverter.datasource.net.RatesNetworkDataSourceImpl
 import com.olshevchenko.currencyconverter.datasource.net.api.RatesApiService
 import com.olshevchenko.currencyconverter.datasource.net.model.ApiToEntityMapper
+import com.olshevchenko.currencyconverter.features.di.presentationModules
+import com.olshevchenko.currencyconverter.features.di.useCaseModules
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import io.reactivex.schedulers.Schedulers
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -41,18 +44,26 @@ private fun provideRetrofitInstance(): Retrofit = Retrofit.Builder()
     .addConverterFactory(MoshiConverterFactory.create(moshi))
     .addCallAdapterFactory(RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io()))
     .baseUrl(API_BASE_URL)
-//        .addConverterFactory(GsonConverterFactory.create())
     .build()
-
-val retrofitModule = module {
-    single { provideRetrofitInstance() }
-}
 
 private fun provideRatesApiService(retrofit: Retrofit): RatesApiService =
     retrofit.create(RatesApiService::class.java)
 
+
+/**
+ * Koin modules for network API
+ */
 val networkModules = module {
-    factory { provideRatesApiService(retrofit = get()) }
+    single(named("retrofit")) {
+        provideRetrofitInstance()
+    }
+    factory(named("ratesApiService")) {
+        provideRatesApiService(
+            retrofit = get<Retrofit>(
+                named("retrofit")
+            )
+        )
+    }
 }
 
 private fun provideLocalRatesFile(context: Context): File {
@@ -60,28 +71,58 @@ private fun provideLocalRatesFile(context: Context): File {
     return File(filePath)
 }
 
-val datasourceModules = module {
-    factory { RatesNetworkDataSourceImpl(ratesApiService = get(), ApiToEntityMapper) }
-    factory {
-        RatesCacheDataSourceImpl(
-            LocalToEntityMapper, EntityToLocalMapper, QuoteToCurrencyRateMapper,
+/**
+ * Koin modules for all types of data sources
+ */
+val dataSourceModules = module {
+    single(named("ratesNetworkDataSourceImpl")) {
+        RatesNetworkDataSourceImpl(
+            ratesApiService = get<RatesApiService>(
+                named("ratesApiService")
+            ),
+            ApiToEntityMapper
         )
     }
-    factory {
+    single(named("ratesCacheDataSourceImpl")) {
+        RatesCacheDataSourceImpl(
+            LocalToEntityMapper,
+            EntityToLocalMapper,
+            QuoteToCurrencyRateMapper,
+        )
+    }
+    single(named("ratesLocalDataSourceImpl")) {
         RatesLocalDataSourceImpl(
-            file = provideLocalRatesFile(context = get()),
-            LocalToEntityMapper, EntityToLocalMapper
+            file = provideLocalRatesFile(
+                context = get()
+            ),
+            LocalToEntityMapper,
+            EntityToLocalMapper
         )
     }
 }
 
+/**
+ * Koin modules for repositories implementation
+ */
 val repositoryModules = module {
-    single {
+    single (named("ratesRepository")) {
         RatesRepositoryImpl(
-            ratesNetworkDataSourceImpl = get(),
-            ratesCacheDataSourceImpl = get(),
-            ratesLocalDataSourceImpl = get(),
+            ratesNetworkDataSourceImpl = get<RatesNetworkDataSourceImpl>(
+                named("ratesNetworkDataSourceImpl")
+            ),
+            ratesCacheDataSourceImpl = get<RatesCacheDataSourceImpl>(
+                named("ratesCacheDataSourceImpl")
+            ),
+            ratesLocalDataSourceImpl = get<RatesLocalDataSourceImpl>(
+                named("ratesLocalDataSourceImpl")
+            ),
             EntityToCurrencyRatesMapper
         )
     }
 }
+
+val dataModules = listOf(
+    networkModules,
+    dataSourceModules,
+    repositoryModules,
+)
